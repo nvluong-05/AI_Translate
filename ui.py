@@ -3,8 +3,6 @@ from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QCursor, QFont
 
 class TranslationPopup(QWidget):
-    # 1. Khởi tạo một "Tín hiệu" tùy chỉnh. 
-    # Tín hiệu này sẽ mang theo 2 chuỗi (string): Bản gốc và Bản dịch.
     save_vocab_signal = pyqtSignal(str, str)
 
     def __init__(self):
@@ -49,10 +47,9 @@ class TranslationPopup(QWidget):
         self.btn_star.clicked.connect(self.on_star_clicked)
 
         header_layout.addWidget(self.lbl_translated)
-        header_layout.addStretch() # Đẩy nút ngôi sao sát về bên phải
+        header_layout.addStretch()
         header_layout.addWidget(self.btn_star)
 
-        # Khởi tạo các vùng text
         self.txt_translated = QTextEdit()
         self.txt_translated.setReadOnly(True)
         self.txt_translated.setFont(QFont("Arial", 11))
@@ -70,23 +67,19 @@ class TranslationPopup(QWidget):
         layout.addWidget(self.txt_original)
 
         self.setLayout(layout)
-        # Responsive size dựa trên content
         self.resize(400, 280)
 
     def show_translation(self, original_text, translated_text):
         self.txt_original.setText(original_text)
         self.txt_translated.setText(translated_text)
         
-        # Reset lại trạng thái ngôi sao mỗi lần dịch câu mới
         self.btn_star.setProperty("class", "")
         self.style().unpolish(self.btn_star)
         self.style().polish(self.btn_star)
 
-        # Tính toán vị trí popup để không bị che mất
         cursor_pos = QCursor.pos()
         offset_x, offset_y = 15, 15
         
-        # Điều chỉnh nếu popup sẽ vượt ra ngoài màn hình
         screen_geometry = self.screen().geometry()
         if cursor_pos.x() + offset_x + self.width() > screen_geometry.width():
             offset_x = -self.width() - 15
@@ -99,27 +92,20 @@ class TranslationPopup(QWidget):
 
     def on_star_clicked(self):
         """Hàm xử lý khi người dùng bấm vào Ngôi sao"""
-        # Lấy text hiện tại
         orig = self.txt_original.toPlainText().strip()
         trans = self.txt_translated.toPlainText().strip()
         
-        # Validation: kiểm tra text không được rỗng
         if not orig or not trans:
-            # Hiển thị feedback rằng không thể lưu text rỗng
             self.btn_star.setToolTip("Không thể lưu: Text không được để trống")
-            # Nhấp nháy button để báo lỗi
-            self.btn_star.setStyleSheet("color: #e74c3c;")  # Màu đỏ
-            # Reset sau 1 giây
+            self.btn_star.setStyleSheet("color: #e74c3c;")
             QTimer.singleShot(1000, self._reset_star_button)
             return
         
-        # Đổi trạng thái ngôi sao sang Vàng để báo hiệu đã bấm
         self.btn_star.setProperty("class", "saved")
         self.style().unpolish(self.btn_star)
         self.style().polish(self.btn_star)
         self.btn_star.setToolTip("Đã lưu vào sổ tay ✓")
         
-        # Phát tín hiệu mang theo dữ liệu (main.py sẽ bắt tín hiệu này)
         self.save_vocab_signal.emit(orig, trans)
     
     def _reset_star_button(self):
