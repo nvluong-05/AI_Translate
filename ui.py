@@ -35,15 +35,13 @@ class TranslationPopup(QWidget):
         layout = QVBoxLayout()
         layout.setContentsMargins(15, 15, 15, 15)
 
-        # 2. Xây dựng khu vực Header (Chứa nhãn và Nút Ngôi sao)
         header_layout = QHBoxLayout()
         self.lbl_translated = QLabel("Bản dịch:")
         
         self.btn_star = QPushButton("⭐")
-        self.btn_star.setObjectName("starButton") # Đặt ID để áp dụng CSS
+        self.btn_star.setObjectName("starButton")
         self.btn_star.setToolTip("Lưu vào sổ tay")
         self.btn_star.setCursor(Qt.CursorShape.PointingHandCursor)
-        # Bắt sự kiện click
         self.btn_star.clicked.connect(self.on_star_clicked)
 
         header_layout.addWidget(self.lbl_translated)
@@ -60,7 +58,6 @@ class TranslationPopup(QWidget):
         self.txt_original.setFont(QFont("Arial", 10))
         self.txt_original.setMaximumHeight(60)
 
-        # Gộp tất cả vào Layout chính
         layout.addLayout(header_layout)
         layout.addWidget(self.txt_translated)
         layout.addWidget(self.lbl_original)
