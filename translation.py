@@ -16,7 +16,6 @@ class Translator:
         if not text:
             return None
 
-        # Phân biệt từ đơn/cụm từ vs câu dài
         is_short = len(text.split()) <= 5
 
         if is_short:

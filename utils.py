@@ -33,7 +33,7 @@ def add_to_notebook(word, definition, phonetics="", tag="General"):
         return False
 
 def get_selected_text():
-    keyboard.press_and_release('ctrl+c')
+    keyboard.press_and_release('ctrl+q')
     time.sleep(0.3)
     return pyperclip.paste().strip()
 
