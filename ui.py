@@ -115,3 +115,5 @@ class TranslationPopup(QWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
             self.hide()
+
+#test git
