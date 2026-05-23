@@ -48,9 +48,3 @@ Chỉ trả về bản dịch ngắn gọn, sát nghĩa. Không giải thích th
                     time.sleep(10)
                     continue
                 return f"Lỗi kết nối AI: {str(e)}"
-
-
-if __name__ == "__main__":
-    bot = Translator()
-    print(bot.translate_text("system"))
-    print(bot.translate_text("This is a long sentence about technology."))
