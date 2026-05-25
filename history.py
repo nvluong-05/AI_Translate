@@ -12,7 +12,7 @@ import utils
 
 def fetch_vocab(search="", tag="Tất cả"):
     utils.init_db()
-    conn = sqlite3.connect('data.db')
+    conn = sqlite3.connect(utils.DB_PATH)
     cursor = conn.cursor()
     query = "SELECT id, word, definition, phonetics, tag, timestamp FROM data WHERE 1=1"
     params = []
@@ -31,7 +31,7 @@ def fetch_vocab(search="", tag="Tất cả"):
 
 def fetch_tags():
     utils.init_db()
-    conn = sqlite3.connect('data.db')
+    conn = sqlite3.connect(utils.DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT DISTINCT tag FROM data WHERE tag IS NOT NULL ORDER BY tag")
     tags = [r[0] for r in cursor.fetchall()]
@@ -40,7 +40,7 @@ def fetch_tags():
 
 
 def delete_vocab(word_id: int):
-    conn = sqlite3.connect('data.db')
+    conn = sqlite3.connect(utils.DB_PATH)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM data WHERE id = ?", (word_id,))
     conn.commit()

@@ -1,9 +1,14 @@
 import sqlite3
+import os
 import pyautogui as mouse
 import pyperclip
 
+APP_DIR = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "AI_Translate")
+os.makedirs(APP_DIR, exist_ok=True)
+DB_PATH = os.path.join(APP_DIR, "data.db")
+
 def init_db():
-    conn = sqlite3.connect('data.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS data 
                    (id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -17,7 +22,7 @@ def init_db():
 
 def add_to_notebook(word, definition, phonetics="", tag="General"):
     try:
-        conn = sqlite3.connect('data.db')
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute('''INSERT INTO data (word, definition, phonetics, tag) 
                           VALUES (?, ?, ?, ?)''', (word, definition, phonetics, tag))
