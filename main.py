@@ -5,9 +5,8 @@ import keyboard
 import pyperclip
 import pyautogui
 
-from PyQt6.QtWidgets import (QApplication, QSystemTrayIcon, QMenu, 
-                              QMessageBox, QWidget)
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QMessageBox
+from PyQt6.QtCore import QObject, pyqtSignal, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QColor, QPainter
 
 import utils
@@ -24,8 +23,7 @@ def create_tray_icon():
     painter.setBrush(QColor("#3498db"))
     painter.setPen(QColor("white"))
     painter.drawEllipse(2, 2, 28, 28)
-    painter.setFont(painter.font())
-    painter.drawText(pixmap.rect(), 0x84, "T") 
+    painter.drawText(pixmap.rect(), 0x84, "T")
     painter.end()
     return QIcon(pixmap)
 
@@ -44,8 +42,8 @@ class HotkeyBridge(QObject):
     def _on_hotkey(self):
         x, y = pyautogui.position()
         pyperclip.copy("")
-        keyboard.press_and_release('ctrl+c')
-        time.sleep(0.4)
+        keyboard.press_and_release('ctrl+c')  # copy text bôi đen
+        time.sleep(0.5)
         text = pyperclip.paste().strip()
         if not text:
             return
@@ -64,37 +62,33 @@ class AppController:
         self.history_window = HistoryWindow(popup=self.popup)
 
         self.popup.btn_history.clicked.connect(self.open_history)
-
         self.popup.closeEvent = self.on_popup_close
 
         self.bridge = HotkeyBridge()
-        self.bridge.translate_triggered.connect(self.on_translate_triggered)
+        self.bridge.translate_triggered.connect(
+            self.on_translate_triggered,
+            Qt.ConnectionType.QueuedConnection
+        )
         self.bridge.start_listening()
 
         self._setup_tray()
-
         print("✅ AI Translate đang chạy ngầm!")
         print("📋 Bôi đen text → Ctrl+Q để dịch | Chuột phải icon khay để tắt")
 
     def _setup_tray(self):
         self.tray = QSystemTrayIcon(create_tray_icon(), self.app)
-        self.tray.setToolTip("AI Translate đang chạy")
+        self.tray.setToolTip("AI Translate đang sẵn sàng")
 
         menu = QMenu()
-
-        action_status = menu.addAction("🟢 AI Translate đang chạy")
+        action_status = menu.addAction("🟢 Ứng dụng đang hoạt động")
         action_status.setEnabled(False)
         menu.addSeparator()
-
         action_show = menu.addAction("📖 Mở popup dịch")
         action_show.triggered.connect(self.popup.show)
-
         action_history = menu.addAction("📚 Sổ tay từ vựng")
         action_history.triggered.connect(self.open_history)
-
         menu.addSeparator()
-
-        action_quit = menu.addAction("❌ Thoát")
+        action_quit = menu.addAction("❌ Thoát ứng dụng")
         action_quit.triggered.connect(self.quit_app)
 
         self.tray.setContextMenu(menu)
@@ -109,33 +103,29 @@ class AppController:
     def on_popup_close(self, event):
         msg = QMessageBox()
         msg.setWindowTitle("AI Translate")
-        msg.setText("Bạn muốn làm gì?")
+        msg.setText("Bạn muốn đóng cửa sổ này?")
         msg.setIcon(QMessageBox.Icon.Question)
-
         btn_minimize = msg.addButton("Thu nhỏ xuống khay", QMessageBox.ButtonRole.AcceptRole)
-        btn_quit     = msg.addButton("Tắt hẳn",            QMessageBox.ButtonRole.DestructiveRole)
-        msg.addButton("Huỷ",                               QMessageBox.ButtonRole.RejectRole)
-
+        btn_quit     = msg.addButton("Tắt hẳn ứng dụng",  QMessageBox.ButtonRole.DestructiveRole)
+        msg.addButton("Huỷ",                              QMessageBox.ButtonRole.RejectRole)
         msg.exec()
         clicked = msg.clickedButton()
-
         if clicked == btn_minimize:
-            event.ignore()          # không đóng
-            self.popup.hide()       # ẩn popup
+            event.ignore()
+            self.popup.hide()
             self.tray.showMessage(
                 "AI Translate",
-                "App vẫn chạy ngầm. Ctrl+Q để dịch.",
-                QSystemTrayIcon.MessageIcon.Information,
-                2000
+                "App vẫn chạy ngầm. Ctrl+Q để dịch nhanh!",
+                QSystemTrayIcon.MessageIcon.Information, 2000
             )
         elif clicked == btn_quit:
             self.quit_app()
         else:
-            event.ignore()         
+            event.ignore()
 
     def open_history(self):
         self.history_window.load_data()
-        self.popup.hide()         
+        self.popup.hide()
         self.history_window.show()
         self.history_window.activateWindow()
 
@@ -155,7 +145,6 @@ class AppController:
                 if "Phiên âm:" in part:
                     phonetics = part.replace("Phiên âm:", "").strip()
                     break
-
         success = utils.add_to_notebook(
             word=original,
             definition=translated,
@@ -167,7 +156,6 @@ class AppController:
                                   QSystemTrayIcon.MessageIcon.Information, 2000)
             if self.history_window.isVisible():
                 self.history_window.load_data()
-        print(f"✅ Đã lưu: '{original}'" if success else f"❌ Lỗi lưu: '{original}'")
 
     def run(self):
         sys.exit(self.app.exec())

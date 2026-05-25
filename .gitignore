@@ -3,3 +3,7 @@ __pycache__/
 *.exe
 .vscode/
 .env
+data.db
+build/
+dist/
+*.spec

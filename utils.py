@@ -1,14 +1,11 @@
 import sqlite3
 import pyautogui as mouse
-import keyboard
-import time
 import pyperclip
 
 def init_db():
     conn = sqlite3.connect('data.db')
     cursor = conn.cursor()
-
-    cursor.execute(''' CREATE TABLE IF NOT EXISTS data 
+    cursor.execute('''CREATE TABLE IF NOT EXISTS data 
                    (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                     word TEXT NOT NULL,
                     definition TEXT NOT NULL,
@@ -17,7 +14,6 @@ def init_db():
                     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
     conn.close()
-    print("Database sẵn sàng!")
 
 def add_to_notebook(word, definition, phonetics="", tag="General"):
     try:
@@ -31,11 +27,6 @@ def add_to_notebook(word, definition, phonetics="", tag="General"):
     except Exception as e:
         print(f"Lỗi lưu trữ: {e}")
         return False
-
-def get_selected_text():
-    keyboard.press_and_release('ctrl+q')
-    time.sleep(0.3)
-    return pyperclip.paste().strip()
 
 def get_mouse_position():
     return mouse.position()
