@@ -5,32 +5,39 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
 
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: '3.11'
 
     - name: Install dependencies
       run: pip install -r requirements.txt pyinstaller
 
-    - name: Inject API key
+    - name: Inject API keys
       run: |
-        (Get-Content translation.py) -replace 'PLACEHOLDER_KEY', '${{ secrets.GEMINI_API_KEY }}' | Set-Content translation.py
+        (Get-Content translation.py) `
+          -replace 'PLACEHOLDER_KEY_1', '${{ secrets.GEMINI_API_KEY_1 }}' `
+          -replace 'PLACEHOLDER_KEY_2', '${{ secrets.GEMINI_API_KEY_2 }}' `
+          -replace 'PLACEHOLDER_KEY_3', '${{ secrets.GEMINI_API_KEY_3 }}' |
+        Set-Content translation.py
       shell: pwsh
 
     - name: Build .exe
       run: pyinstaller --onefile --noconsole --name "AI_Translate" main.py
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: AI_Translate
         path: dist/AI_Translate.exe
