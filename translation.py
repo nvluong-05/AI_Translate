@@ -46,13 +46,7 @@ Chỉ trả về bản dịch ngắn gọn, sát nghĩa. Không giải thích th
                 if "error" in data:
                     return f"Lỗi dịch thuật: {data['error'].get('message', 'Unknown error')}"
 
-                choices = data.get("choices", [])
-                if not choices:
-                    return "Lỗi dịch thuật: API không trả về kết quả"
-                content = choices[0].get("message", {}).get("content")
-                if not content:
-                    return "Lỗi dịch thuật: Nội dung trả về rỗng"
-                return content.strip()
+                return data["choices"][0]["message"]["content"].strip()
 
             except Exception as e:
                 if attempt < 2:
@@ -65,4 +59,3 @@ if __name__ == "__main__":
     bot = Translator()
     print(f"Key loaded: {bot.api_key[:20]}...")
     print(bot.translate_text("Persistence"))
-    print(bot.translate_text("web browser"))
