@@ -13,6 +13,7 @@ import utils
 from ui import TranslationPopup
 from translation import Translator
 from history import HistoryWindow
+from youtube_ui import YouTubeDialog
 
 
 def create_tray_icon():
@@ -61,6 +62,8 @@ class AppController:
         self.popup.save_vocab_signal.connect(self.on_save_vocab)
         self.history_window = HistoryWindow(popup=self.popup)
 
+        self.youtube_dialog = YouTubeDialog(api_key=self.translator.api_key)
+
         self.popup.btn_history.clicked.connect(self.open_history)
         self.popup.closeEvent = self.on_popup_close
 
@@ -87,6 +90,9 @@ class AppController:
         action_show.triggered.connect(self.popup.show)
         action_history = menu.addAction("📚 Sổ tay từ vựng")
         action_history.triggered.connect(self.open_history)
+
+        action_yt = menu.addAction("🎬 Dịch video YouTube")
+        action_yt.triggered.connect(self.open_youtube)
         menu.addSeparator()
         action_quit = menu.addAction("❌ Thoát ứng dụng")
         action_quit.triggered.connect(self.quit_app)
@@ -122,6 +128,12 @@ class AppController:
             self.quit_app()
         else:
             event.ignore()
+
+    def open_youtube(self):
+        self.youtube_dialog.input_url.clear()
+        self.youtube_dialog.lbl_status.setText("")
+        self.youtube_dialog.show()
+        self.youtube_dialog.activateWindow()
 
     def open_history(self):
         self.history_window.load_data()
