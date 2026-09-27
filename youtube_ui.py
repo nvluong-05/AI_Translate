@@ -26,6 +26,8 @@ class YouTubeDialog(QDialog):
             QLabel { border: none; color: #2c3e50; }
             QLabel#title { font-size: 15px; font-weight: bold; }
             QLabel#hint  { font-size: 12px; color: #7f8c8d; }
+            QLabel#note  { font-size: 11px; color: #27ae60; background: #eafaf1;
+                           border-radius: 4px; padding: 6px 8px; }
             QLabel#status { font-size: 12px; color: #2c3e50; }
             QLineEdit {
                 border: 1px solid #dcdde1; border-radius: 6px;
@@ -55,15 +57,23 @@ class YouTubeDialog(QDialog):
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(10)
 
-        lbl_title = QLabel("🎬 Dịch phụ đề YouTube sang tiếng Việt")
+        lbl_title = QLabel("🎬 Dịch video YouTube sang tiếng Việt")
         lbl_title.setObjectName("title")
 
-        lbl_hint = QLabel("Dán link video YouTube có phụ đề tiếng Anh (CC):")
+        lbl_hint = QLabel("Dán link video YouTube (có hoặc không có phụ đề):")
         lbl_hint.setObjectName("hint")
 
         self.input_url = QLineEdit()
         self.input_url.setPlaceholderText("https://www.youtube.com/watch?v=...")
         self.input_url.returnPressed.connect(self._start)
+
+        # Ghi chú cho người dùng
+        lbl_note = QLabel(
+            "✅ Có phụ đề CC → dịch nhanh (vài giây)\n"
+            "🎙️ Không có phụ đề → dùng Whisper nhận diện (lâu hơn, lần đầu tải model ~150MB)"
+        )
+        lbl_note.setObjectName("note")
+        lbl_note.setWordWrap(True)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 0)
@@ -90,6 +100,7 @@ class YouTubeDialog(QDialog):
         layout.addWidget(lbl_title)
         layout.addWidget(lbl_hint)
         layout.addWidget(self.input_url)
+        layout.addWidget(lbl_note)
         layout.addWidget(self.progress_bar)
         layout.addWidget(self.lbl_status)
         layout.addLayout(btn_row)
