@@ -6,14 +6,15 @@ import pyperclip
 import pyautogui
 
 from PyQt6.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QMessageBox
-from PyQt6.QtCore import QObject, pyqtSignal, Qt
+from PyQt6.QtCore import QObject, pyqtSignal, Qt, QThread
 from PyQt6.QtGui import QIcon, QPixmap, QColor, QPainter
 
 import utils
 from ui import TranslationPopup
 from translation import Translator
 from history import HistoryWindow
-
+import voice_module
+from ui import TranslationPopup
 
 def create_tray_icon():
     pixmap = QPixmap(32, 32)
@@ -42,13 +43,36 @@ class HotkeyBridge(QObject):
     def _on_hotkey(self):
         x, y = pyautogui.position()
         pyperclip.copy("")
-        keyboard.press_and_release('ctrl+c')  # copy text bôi đen
+        keyboard.press_and_release('ctrl+c')
         time.sleep(0.5)
         text = pyperclip.paste().strip()
         if not text:
             return
         self.translate_triggered.emit(text, x, y)
+class VoiceWorker(QThread):
+    update_status = pyqtSignal(str, str)
 
+    def run(self):
+        try:
+            self.update_status.emit("🎙️ Đang thu âm...", "Hãy nói trong 5 giây...")
+            audio_file = voice_module.record_audio(duration=5)
+            
+            self.update_status.emit("⏳ Đang phân tích...", "Whisper đang bóc băng âm thanh...")
+            english_text = voice_module.transcribe_audio(audio_file)
+            
+            if english_text:
+                self.update_status.emit(english_text, "⏳ Đang dịch sang tiếng Việt...")
+                api_key = voice_module.GOOGLE_API_KEY if hasattr(voice_module, 'GOOGLE_API_KEY') else "YOUR_KEY"
+                result = voice_module.translate_to_vietnamese(english_text, api_key)
+                
+                if result:
+                    self.update_status.emit(english_text, result)
+                else:
+                    self.update_status.emit(english_text, "❌ Hệ thống dịch bận, vui lòng thử lại.")
+            else:
+                self.update_status.emit("❌ Lỗi", "Không nhận diện được giọng nói.")
+        except Exception as e:
+            self.update_status.emit("❌ Lỗi hệ thống", str(e))
 
 class AppController:
     def __init__(self):
@@ -63,6 +87,9 @@ class AppController:
 
         self.popup.btn_history.clicked.connect(self.open_history)
         self.popup.closeEvent = self.on_popup_close
+        self.voice_worker = VoiceWorker()
+        self.voice_worker.update_status.connect(self.on_voice_update)
+        self.popup.record_voice_signal.connect(self.start_voice_recording)
 
         self.bridge = HotkeyBridge()
         self.bridge.translate_triggered.connect(
@@ -156,6 +183,14 @@ class AppController:
                                   QSystemTrayIcon.MessageIcon.Information, 2000)
             if self.history_window.isVisible():
                 self.history_window.load_data()
+    def start_voice_recording(self):
+        x, y = pyautogui.position()
+        self.popup.show_translation_at("Đang chuẩn bị...", "Hãy sẵn sàng nói tiếng Anh...", x, y)
+        self.voice_worker.start()
+
+    def on_voice_update(self, original_text, status_text):
+        x, y = pyautogui.position()
+        self.popup.show_translation_at(original_text, status_text, x, y)
 
     def run(self):
         sys.exit(self.app.exec())

@@ -4,9 +4,11 @@ from PyQt6.QtGui import QCursor, QFont
 
 class TranslationPopup(QWidget):
     save_vocab_signal = pyqtSignal(str, str)
+    record_voice_signal = pyqtSignal()  
 
     def __init__(self):
         super().__init__()
+        self.drag_position = None
         self.init_ui()
 
     def init_ui(self):
@@ -74,8 +76,18 @@ class TranslationPopup(QWidget):
         self.btn_close.setToolTip("Đóng (Esc)")
         self.btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_close.clicked.connect(self.hide)
+
+        # Định nghĩa nút Thu âm
+        self.btn_record = QPushButton("🎤")
+        self.btn_record.setObjectName("recordButton")
+        self.btn_record.setToolTip("Dịch qua giọng nói")
+        self.btn_record.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_record.setStyleSheet("background: transparent; border: none; font-size: 15px;")
+        self.btn_record.clicked.connect(self.record_voice_signal.emit) 
+
         header_layout.addWidget(self.lbl_translated)
         header_layout.addStretch()
+        header_layout.addWidget(self.btn_record)  
         header_layout.addWidget(self.btn_star)
         header_layout.addWidget(self.btn_history)
         header_layout.addWidget(self.btn_close)
@@ -218,3 +230,14 @@ class TranslationPopup(QWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
             self.hide()
+    def mousePressEvent(self, event):
+        # Khi nhấn chuột trái, lưu lại vị trí hiện tại của chuột so với cửa sổ
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        # Khi di chuyển chuột mà vẫn đang giữ chuột trái, cập nhật vị trí cửa sổ
+        if event.buttons() == Qt.MouseButton.LeftButton:
+            self.move(event.globalPosition().toPoint() - self.drag_position)
+            event.accept()
