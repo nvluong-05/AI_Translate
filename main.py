@@ -14,7 +14,8 @@ from ui import TranslationPopup
 from translation import Translator
 from history import HistoryWindow
 import voice_module
-from ui import TranslationPopup
+from youtube_ui import YouTubeDialog
+
 
 def create_tray_icon():
     pixmap = QPixmap(32, 32)
@@ -49,6 +50,7 @@ class HotkeyBridge(QObject):
         if not text:
             return
         self.translate_triggered.emit(text, x, y)
+
 class VoiceWorker(QThread):
     update_status = pyqtSignal(str, str)
 
@@ -85,6 +87,8 @@ class AppController:
         self.popup.save_vocab_signal.connect(self.on_save_vocab)
         self.history_window = HistoryWindow(popup=self.popup)
 
+        self.youtube_dialog = YouTubeDialog(api_key=self.translator.api_key)
+
         self.popup.btn_history.clicked.connect(self.open_history)
         self.popup.closeEvent = self.on_popup_close
         self.voice_worker = VoiceWorker()
@@ -114,6 +118,9 @@ class AppController:
         action_show.triggered.connect(self.popup.show)
         action_history = menu.addAction("📚 Sổ tay từ vựng")
         action_history.triggered.connect(self.open_history)
+
+        action_yt = menu.addAction("🎬 Dịch video YouTube")
+        action_yt.triggered.connect(self.open_youtube)
         menu.addSeparator()
         action_quit = menu.addAction("❌ Thoát ứng dụng")
         action_quit.triggered.connect(self.quit_app)
@@ -150,6 +157,12 @@ class AppController:
         else:
             event.ignore()
 
+    def open_youtube(self):
+        self.youtube_dialog.input_url.clear()
+        self.youtube_dialog.lbl_status.setText("")
+        self.youtube_dialog.show()
+        self.youtube_dialog.activateWindow()
+
     def open_history(self):
         self.history_window.load_data()
         self.popup.hide()
@@ -184,17 +197,16 @@ class AppController:
             if self.history_window.isVisible():
                 self.history_window.load_data()
     def start_voice_recording(self):
-        x, y = pyautogui.position()
+        x, y = self.popup.x(), self.popup.y()
         self.popup.show_translation_at("Đang chuẩn bị...", "Hãy sẵn sàng nói tiếng Anh...", x, y)
         self.voice_worker.start()
 
     def on_voice_update(self, original_text, status_text):
-        x, y = pyautogui.position()
+        x, y = self.popup.x(), self.popup.y()
         self.popup.show_translation_at(original_text, status_text, x, y)
 
     def run(self):
         sys.exit(self.app.exec())
-
 
 if __name__ == "__main__":
     controller = AppController()
