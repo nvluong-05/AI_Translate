@@ -64,7 +64,7 @@ class VoiceWorker(QThread):
             
             if english_text:
                 self.update_status.emit(english_text, "⏳ Đang dịch sang tiếng Việt...")
-                api_key = voice_module.GOOGLE_API_KEY if hasattr(voice_module, 'GOOGLE_API_KEY') else "YOUR_KEY"
+                api_key = voice_module.OPENROUTER_API_KEY if hasattr(voice_module, 'OPENROUTER_API_KEY') else "YOUR_KEY"
                 result = voice_module.translate_to_vietnamese(english_text, api_key)
                 
                 if result:
