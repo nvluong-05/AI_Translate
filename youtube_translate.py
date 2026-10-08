@@ -408,8 +408,4 @@ class YouTubeTranslator(QObject):
         srt_vi = build_srt(entries)
         srt_vi_path.write_text(srt_vi, encoding="utf-8")
 
-        self.progress.emit("✅ Đang tạo trình phát video...")
-        vtt = srt_to_vtt(srt_vi)
-        html_file = build_html_player(youtube_url, vtt, srt_vi_path)
-
-        self.finished.emit(html_file)
+        self.finished.emit(str(srt_vi_path))
