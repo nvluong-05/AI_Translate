@@ -23,8 +23,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install --upgrade pip setuptools wheel
-        pip install --no-build-isolation openai-whisper==20240930
+        pip install --upgrade pip "setuptools<70" wheel
         pip install -r requirements.txt pyinstaller
 
     - name: Inject API key into all modules
