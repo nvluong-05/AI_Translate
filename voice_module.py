@@ -20,7 +20,6 @@ MODELS = [
 ]
 
 def record_audio(duration=5, fs=44100, filename="temp_audio.wav"):
-    """Hàm thu âm từ microphone"""
     print(f"🎙️ Bắt đầu thu âm trong {duration} giây...")
     recording = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='int16')
     sd.wait() 
@@ -34,7 +33,6 @@ def record_audio(duration=5, fs=44100, filename="temp_audio.wav"):
     return filename
 
 def transcribe_audio(audio_file):
-    """Hàm bóc băng âm thanh bằng Whisper"""
     print("⏳ AI Whisper đang phân tích âm thanh...")
     try:
         model = whisper.load_model("base")
@@ -47,8 +45,6 @@ def transcribe_audio(audio_file):
         return None
 
 def translate_to_vietnamese(english_text, api_key=None):
-    """Hàm dịch sang tiếng Việt qua OpenRouter dùng requests"""
-
     key_to_use = api_key if api_key and api_key != "YOUR_KEY" else os.getenv("OPENROUTER_API_KEY")
     
     if not key_to_use:

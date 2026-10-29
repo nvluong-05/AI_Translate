@@ -341,7 +341,6 @@ class YouTubeDialog(QDialog):
         self.lbl_status.setText(msg)
 
     def _on_finished(self, srt_path: str):
-        """Nhận path file SRT thay vì HTML"""
         self.progress_bar.setVisible(False)
         self.btn_go.setEnabled(True)
         self.btn_open.setEnabled(True)

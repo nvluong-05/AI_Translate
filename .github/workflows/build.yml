@@ -24,13 +24,34 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt pyinstaller
 
-    - name: Inject API key
+    - name: Inject API key into all modules
       run: |
+        # Inject vào translation.py (hardcode key cũ)
         (Get-Content translation.py) -replace 'PLACEHOLDER_KEY', '${{ secrets.OPENROUTER_API_KEY }}' | Set-Content translation.py
+
+        # Tạo file .env để voice_module.py và youtube_translate.py đọc qua load_dotenv()
+        "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" | Out-File -FilePath .env -Encoding utf8
       shell: pwsh
 
     - name: Build .exe
-      run: pyinstaller --onefile --noconsole --name "AI_Translate" --icon="assets/book-open-cover.ico" main.py
+      run: |
+        pyinstaller --noconfirm --onefile --noconsole `
+          --name "AI_Translate" `
+          --icon="assets/book-open-cover.ico" `
+          --add-data ".env;." `
+          --add-data "assets;assets" `
+          --hidden-import "PyQt6.sip" `
+          --hidden-import "sounddevice" `
+          --hidden-import "whisper" `
+          --hidden-import "youtube_translate" `
+          --hidden-import "youtube_ui" `
+          --hidden-import "voice_module" `
+          --hidden-import "history" `
+          --hidden-import "utils" `
+          --hidden-import "ui" `
+          --hidden-import "translation" `
+          main.py
+      shell: pwsh
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4.6.2

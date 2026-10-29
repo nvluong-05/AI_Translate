@@ -28,7 +28,7 @@ def _call_api(prompt: str, api_key: str) -> str | None:
             response = requests.post(
                 API_URL,
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 500},
+                json={"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": 2400},
                 timeout=30,
             )
             data = response.json()
@@ -72,9 +72,17 @@ def translate_batch(lines: list[str], api_key: str) -> list[str]:
     if not lines:
         return []
     numbered = "\n".join(f"{i+1}. {line}" for i, line in enumerate(lines))
-    prompt = f"""Translate these subtitle lines to Vietnamese.
-Return EXACTLY the same number of lines, each as: [number]. [translation]
-No explanations, keep it natural and concise.
+    prompt = f"""Bạn là chuyên gia dịch phụ đề video sang tiếng Việt tự nhiên, liền mạch.
+
+Các dòng dưới đây là phụ đề tiếng Anh được cắt theo timestamp — mỗi dòng có thể là mảnh câu chưa hoàn chỉnh. Hãy dịch sao cho BẢN DỊCH ĐỌC LIỀN MẠCH, tự nhiên như người Việt nói, không bị gãy giữa chừng.
+
+QUY TẮC BẮT BUỘC:
+- Dịch TẤT CẢ các dòng, kể cả mảnh câu ngắn hay từ đơn lẻ.
+- TUYỆT ĐỐI KHÔNG giữ nguyên tiếng Anh. Mọi từ phải là tiếng Việt.
+- Nếu dòng là phần tiếp của câu trước → dịch sao cho ý nghĩa nối tiếp tự nhiên.
+- Nếu là tên riêng / tên sản phẩm → giữ nguyên tên, dịch phần còn lại.
+- Trả về ĐÚNG {len(lines)} dòng, định dạng: [số]. [bản dịch tiếng Việt]
+- Không giải thích, không ghi chú thêm.
 
 {numbered}"""
     result = _call_api(prompt, api_key)
@@ -282,7 +290,6 @@ function tick() {{
 
 
 def _whisper_transcribe(audio_path: Path, progress_cb) -> list[dict]:
-    """Dùng Whisper nhận diện giọng nói → trả về entries SRT"""
     try:
         import whisper
         progress_cb("🎙️ Đang tải Whisper model (lần đầu có thể lâu)...")
@@ -390,7 +397,7 @@ class YouTubeTranslator(QObject):
         total = len(entries)
         self.progress.emit(f"🌐 Đang dịch {total} dòng phụ đề...")
 
-        BATCH = 15
+        BATCH = 25
         texts = [e["text"] for e in entries]
         translated = []
 
